@@ -1,0 +1,170 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{palatino}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+\usepackage{array}
+
+\titlespacing*{\section}{0pt}{1.2ex plus .3ex minus .2ex}{0.6ex plus .1ex}
+\titlespacing*{\subsection}{0pt}{1.0ex plus .2ex minus .2ex}{0.4ex plus .1ex}
+
+\begin{document}
+
+\begin{center}
+{\Large\bfseries Formalising a Price-Time-Priority Matching Engine in Veil}\\[6pt]
+Chen Zhikun \;\textbar\; A0310130J \;\textbar\; Solo Project\\[2pt]
+{\small April 8, 2026}
+\end{center}
+
+\medskip
+
+\section{Problem Statement}
+
+I propose to formalise a simplified electronic limit order matching engine in
+Veil. The state is a transition system: a buy-side order book sorted by
+descending price, a sell-side book sorted by ascending price, a trade log,
+and per-account cash and asset holdings. Orders carry an ID, account, side,
+limit price, quantity, and timestamp. The transitions are \texttt{submit},
+\texttt{match}, and possibly \texttt{cancel}.
+
+The verification goal is to show that the engine preserves safety properties
+expected of a price-time-priority exchange---the dominant allocation rule in
+real electronic markets, where orders at each price level fill in arrival
+order~\cite{harris}. Concretely, the engine should never execute a trade that
+violates queue discipline, creates or destroys assets, or cannot be traced
+back to two live orders. The problem sits at the intersection of relational
+state modelling, ordered-data reasoning, and arithmetic invariants, which is
+why it fits CS5232.
+
+The model will not try to capture a full exchange. It covers a single asset
+and limit orders only; market orders, multiple assets, and possibly
+cancellation or partial fills will be omitted if they blow up the state space.
+The point is a clean formal model with real correctness theorems, not market
+microstructure realism.
+
+\section{Why This Project Fits the Course}
+
+The engine is a state machine, so Veil is the natural primary tool.
+One concern worth addressing: Veil was designed for distributed protocol
+verification~\cite{veilpost}, and a matching engine is strictly a centralised
+sequential system. But the core Veil abstraction---transition systems over
+relational state with inductive invariants---does not depend on distribution.
+More concretely, the engine will be modelled as a system where multiple
+external agents submit orders asynchronously; the resulting interleaving of
+\texttt{submit} and \texttt{match} transitions is structurally similar to the
+multi-node message-passing scenarios Veil targets. The plan is to use Veil
+model checking on small instances to catch specification bugs early, then
+\texttt{\#check\_invariants} for the real safety proofs.
+
+Several of the proof obligations need Lean-level reasoning that goes beyond
+what Veil's relational language handles directly: conservation of total cash
+and total asset quantity, preservation of book sortedness after insertions and
+deletions, and correctness of fill quantities. These will live as auxiliary
+Lean lemmas.
+
+The matching procedure also has a meaningful Velvet angle. The inner loop
+(``while best bid $\geq$ best ask, execute one trade and update quantities'')
+is algorithmic enough to be worth implementing in Velvet with a postcondition
+tying it back to the abstract Veil spec.
+
+What makes the invariants interesting is that they couple with each other.
+Queue discipline depends on the relative ranking of all live orders on the
+same side, not just a single order. Conservation links the trade log to
+account balances. Partial fills, if included, add residual-quantity tracking
+on top of both.
+
+\section{Planned Formalisation}
+
+The Veil state will track: live buy and sell orders (with a ranking relation
+or sorted representation per side), each order's remaining quantity, the
+executed trade log, and per-account cash and asset positions. The model covers
+a single asset with a finite set of accounts. To keep things simple, the
+minimum version fixes a deterministic execution-price rule instead of trying
+to handle venue-specific pricing conventions.
+
+The safety properties I plan to formalise are:
+
+\begin{itemize}[leftmargin=1.5em]
+\item \emph{stable book}: after matching completes, the remaining book is not
+crossed.
+\item \emph{price-time priority}: trades consume the best available orders;
+within a price level, the earliest order fills first.
+\item \emph{conservation}: total cash and total asset quantity across all
+accounts are preserved by every step.
+\item \emph{no phantom trades}: every trade log entry traces back to two orders
+that were live before that step.
+\item \emph{quantity consistency}: no execution uses more quantity than either
+matched order has remaining.
+\end{itemize}
+
+On the Lean side, I will need helper lemmas for book sortedness (insertion,
+deletion) and quantity arithmetic. If I get to the Velvet component, the plan
+is a reference matching loop whose postcondition ties the output trade list
+and residual book back to the Veil properties above.
+
+The starting scope is deliberately narrow: one asset, limit orders only, no
+market orders, no cancellation, and probably full fills only at first (to
+avoid residual-quantity bookkeeping). Partial fills and cancellation are
+stretch goals.
+
+\section{Feasibility by April 27, 2026}
+
+The scope can be tightened aggressively without making the result trivial:
+single asset, limit orders only, safety properties only (no liveness or
+throughput), and no market orders. Even with all these cuts, the engine still
+has two ordered books, provenance constraints on trades, and balance
+arithmetic---enough for a non-trivial proof.
+
+I have been working with Lean throughout this course and am comfortable with
+tactic-mode proofs, so the main uncertainty is not the proof infrastructure
+but the state-space size for model checking. If bounded instances are too
+slow, I can fall back to purely deductive proofs with
+\texttt{\#check\_invariants}.
+
+Tentative schedule:
+
+\medskip
+\noindent
+\begin{tabular}{@{}>{\raggedright}p{3.2cm} p{10.4cm}@{}}
+Apr 8--12  & Finalise abstract state, order representation, and basic transition relation in Veil; validate with small-instance model checking.\\[3pt]
+Apr 13--18 & Formalise main safety properties and prove core invariants with \texttt{\#check\_invariants}; add Lean helper lemmas as needed.\\[3pt]
+Apr 19--23 & Extend model to partial fills or cancellation if base proof is stable, or implement matching loop in Velvet.\\[3pt]
+Apr 24--27 & Write report, polish development, reduce scope if necessary to ensure a clean verified core.
+\end{tabular}
+\medskip
+
+The main risk is state-space explosion: two order books plus a trade log can
+get expensive fast for model checking, and encoding price-time priority is
+harder than plain sortedness. To control this I will start with bounded price
+and quantity ranges and a small account set. If the full queue-discipline
+theorem turns out to be too heavy, the fallback is to model-check it on small
+instances only and prove a weaker but still useful local property
+deductively---``each match step picks the current best bid and ask.''
+
+\section{Deliverables}
+
+\paragraph{Minimum.} A Veil specification of the single-asset matching engine;
+at least one checked safety theorem combining stable-book, conservation, and
+trade-provenance properties; a small finite model-checking setup; Lean helper
+lemmas for sortedness and quantity arithmetic; and a short report.
+
+\paragraph{Stretch goals (in rough priority order).}
+Partial fills with correct residual-quantity updates;
+cancellation with a proof that cancelled orders never appear in later trades;
+a Velvet matching loop verified against an abstract postcondition;
+a stronger trace-level price-time-priority theorem for the full trade log.
+
+% Conclusion section removed to save space---the deliverables section
+% already summarises the expected outcome.
+
+\begin{thebibliography}{9}
+\bibitem{cs5232proj} Ilya Sergey. ``Research Project: Guidelines and Deliverables.'' CS5232: Formal Specification and Design Techniques, 2026. \url{https://ilyasergey.net/CS5232/projects.html}
+\bibitem{veilpost} Ilya Sergey. ``Verifying Distributed Protocols in Veil.'' Proofs and Intuitions, February 9, 2026. \url{https://proofsandintuitions.net/2026/02/09/distributed-verification-veil/}
+\bibitem{velvetpost} Ilya Sergey. ``Multi-Modal Program Verification in Velvet.'' Proofs and Intuitions, January 21, 2026. \url{https://proofsandintuitions.net/2026/01/21/multi-modal-verification-velvet/}
+\bibitem{loom} verse-lab. ``Loom: A Framework for Automated Generation of Foundational Multi-Modal Verifiers.'' GitHub repository. \url{https://github.com/verse-lab/loom}
+\bibitem{harris} Larry Harris. \emph{Trading and Exchanges: Market Microstructure for Practitioners}. Oxford University Press, 2003.
+\end{thebibliography}
+
+\end{document}
