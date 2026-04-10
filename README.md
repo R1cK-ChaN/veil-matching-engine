@@ -7,9 +7,16 @@ The current repository includes:
 
 - `proposal.tex`: the project proposal source
 - `build_proposal_pdf.py`: a small script that renders the proposal PDF
+- `docs/veil_pseudospec.md`: a proof-friendly Veil-flavored pseudo-spec for the
+  minimal verified core
 
 The formal development will be added here as the project progresses, including
 the Veil model, proof artifacts, and supporting notes.
+
+## Documentation
+
+- [`docs/veil_pseudospec.md`](docs/veil_pseudospec.md): pseudo-spec for the
+  matching engine state, transitions, and first proof targets
 
 ## Building the proposal PDF
 
