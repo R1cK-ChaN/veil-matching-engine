@@ -16,12 +16,13 @@ the main safety results. The intended proof shape is:
 \subsection{Lean Helper Lemmas}
 
 Several obligations are more naturally handled in Lean than directly inside
-Veil. These include:
+Veil. In the current relational encoding, relatively little auxiliary Lean
+infrastructure is needed, but the natural future obligations would include:
 
 \begin{itemize}[leftmargin=1.5em]
 \item preservation of sortedness under insertion and deletion;
 \item simple facts about quantities and residual quantities;
-\item arithmetic lemmas needed for conservation of cash and assets.
+\item arithmetic lemmas needed for stronger conservation theorems.
 \end{itemize}
 
 \subsection{Optional Velvet Component}

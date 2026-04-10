@@ -113,32 +113,34 @@ ghost relation isBestAsk (a : orderId) :=
 -- Actions (transitions)
 -- ═══════════════════════════════════════════════════════════════════════════
 
--- Submit a buy (bid) order. The order ID must be fresh.
--- bidPx/bidQty for a fresh oid are nondeterministic (inherited from init);
--- we constrain them with require before activating the order.
-action submit_buy (who_param : trader) (oid : orderId) {
+-- Submit a buy (bid) order with an explicit limit price and quantity.
+action submit_buy (who_param : trader) (oid : orderId) (px qty : Nat) {
   require ¬ inBid oid
   require ¬ inAsk oid
   require ∀ x, ¬ tradeExists oid x
   require ∀ x, ¬ tradeExists x oid
-  require bidPx oid > 0
-  require bidQty oid > 0
+  require px > 0
+  require qty > 0
   inBid oid := true
   bidWho oid := who_param
+  bidPx oid := px
+  bidQty oid := qty
   bidTs oid := next_ts
   next_ts := next_ts + 1
 }
 
--- Submit a sell (ask) order. The order ID must be fresh.
-action submit_sell (who_param : trader) (oid : orderId) {
+-- Submit a sell (ask) order with an explicit limit price and quantity.
+action submit_sell (who_param : trader) (oid : orderId) (px qty : Nat) {
   require ¬ inBid oid
   require ¬ inAsk oid
   require ∀ x, ¬ tradeExists oid x
   require ∀ x, ¬ tradeExists x oid
-  require askPx oid > 0
-  require askQty oid > 0
+  require px > 0
+  require qty > 0
   inAsk oid := true
   askWho oid := who_param
+  askPx oid := px
+  askQty oid := qty
   askTs oid := next_ts
   next_ts := next_ts + 1
 }

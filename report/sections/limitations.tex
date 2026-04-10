@@ -1,0 +1,21 @@
+\section{Limitations and Threats to Validity}
+
+The paper intentionally abstracts away many features of real exchanges,
+including multiple assets, market orders, protocol-level sequencing, complex
+order types, and operational resilience mechanisms. This is a conscious scope
+decision rather than an omission by accident. The aim is to obtain a clean,
+non-trivial verified core, not to replicate every operational detail of a
+production trading venue.
+
+The current artifact is an abstract legal-match transition system rather than a
+verified executable matching algorithm over an explicit data structure. In
+particular, matching correctness is expressed through best-order predicates in
+the transition preconditions, not by verifying a concrete book-processing
+procedure.
+
+Another important limitation is that the current accounting statement is weaker
+than full global conservation: the proved invariant is a frame-style property
+for traders uninvolved in all trades, not a sum-preservation theorem over all
+accounts. Likewise, the bounded model-checking result is a very small smoke
+test over finite traders and order IDs, not a broad exploration over bounded
+price and quantity domains.

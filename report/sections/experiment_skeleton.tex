@@ -9,17 +9,18 @@ checks used during development.
 
 \subsection{Experiment 1: Small-Instance Model Checking}
 
-This experiment explores tiny bounded instances of the state space with a small
-account set, bounded prices, and bounded quantities. The goal is to catch
-specification bugs before attempting full invariant proofs.
+The current bounded experiment is a smoke test over a tiny finite instance. It
+does not yet sweep bounded price and quantity domains; instead, it fixes a
+small trader universe and a small order-ID universe and checks the resulting
+finite model.
 
 \begin{itemize}[leftmargin=1.5em]
-\item \textbf{Inputs:} number of accounts, maximum outstanding orders, bounded
-price range, bounded quantity range.
-\item \textbf{Checks:} stable-book violations, queue-discipline violations,
-impossible trades, and quantity inconsistencies.
-\item \textbf{Outputs to report:} maximum bounds explored, whether a
-counterexample was found, and the kind of bug revealed by any failing case.
+\item \textbf{Inputs:} \texttt{trader := Fin 2}, \texttt{orderId := Fin 3},
+with constant initial balances supplied to the theory functions.
+\item \textbf{Checks:} whether the finite instance exhibits any violation of
+the declared safety and invariant set.
+\item \textbf{Outputs to report:} the exact finite bound, whether a
+counterexample was found, and the number of explored states.
 \end{itemize}
 
 \subsection{Experiment 2: Invariant Checking}
@@ -31,10 +32,10 @@ invariant tooling.
 \item \textbf{Goal:} determine whether the chosen invariants are strong enough
 to make the main properties inductive.
 \item \textbf{Measurements:} which invariants are required, whether
-counterexamples to induction appear, and which helper lemmas are needed from
-Lean.
-\item \textbf{Success criterion:} the core safety set passes invariant
-checking for the minimal model.
+counterexamples to induction appear, and how many preservation checks are
+generated across initialization and actions.
+\item \textbf{Success criterion:} the declared safety and invariant set passes
+deductive checking for the current minimal model.
 \end{itemize}
 
 \subsection{Experiment 3: Optional Executable Cross-Check}
@@ -55,8 +56,8 @@ any, and the final postcondition used to link code back to the model.
 \begin{tabular}{@{}>{\raggedright}p{3.6cm} p{4.2cm} p{3.0cm} p{4.0cm}@{}}
 \textbf{Experiment} & \textbf{Purpose} & \textbf{Variables} & \textbf{What to report} \\
 \hline
-Bounded model checking & Find specification bugs early & Accounts, prices, quantities, outstanding orders & Largest bounds tried; counterexamples found or absent \\
-Invariant checking & Prove core safety properties & Candidate invariants, helper lemmas & Which properties proved; missing obligations \\
+Bounded model checking & Smoke-test the finite model & Trader bound, order-ID bound, initial theory values & Exact bound, explored states, counterexample found or absent \\
+Invariant checking & Prove the declared safety set & Safety count, invariant count, action blocks & Total checks and whether any block fails \\
 Optional executable check & Align code with spec & Trace length, supported transition subset & Agreement or mismatch between loop and spec \\
 \end{tabular}
 \end{center}

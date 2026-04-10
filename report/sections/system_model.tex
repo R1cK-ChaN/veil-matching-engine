@@ -21,10 +21,10 @@ The engine state consists of:
 \end{itemize}
 
 For proof convenience, each side of the book can be represented either as a
-sorted sequence or as a relational ranking structure. The current plan
-prioritises a sorted representation because it makes price-time priority
-visible in the state and aligns naturally with helper lemmas about insertion
-and deletion.
+sorted sequence or as a relational ranking structure. The current
+implementation uses the relational option: the state records order membership
+and fields directly, and ghost predicates define what it means for an order to
+be the current best bid or best ask.
 
 \subsection{Transitions}
 
@@ -32,9 +32,9 @@ The abstract transition system contains at least the following steps:
 
 \begin{itemize}[leftmargin=1.5em]
 \item \texttt{submit}: add a new limit order to the appropriate side of the
-book while preserving book well-formedness;
-\item \texttt{match}: execute one trade between the current best bid and best
-ask when they are compatible; and
+book while explicitly assigning its price and quantity;
+\item \texttt{match}: execute one legal trade between the current best bid and
+best ask when they are compatible; and
 \item optionally \texttt{cancel}: remove a live order from the book.
 \end{itemize}
 

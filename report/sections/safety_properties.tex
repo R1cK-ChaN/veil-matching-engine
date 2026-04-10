@@ -1,0 +1,21 @@
+\section{Safety Properties}
+
+The main safety properties to prove are:
+
+\begin{itemize}[leftmargin=1.5em]
+\item \emph{best-order selection}: every enabled match step uses an order
+identified as the current best bid and the current best ask;
+\item \emph{trade-field provenance}: recorded trade price and quantity are tied
+to the matched ask and bid;
+\item \emph{no self-dealing}: the matched buyer and seller are distinct;
+\item \emph{frame-style balance preservation}: traders uninvolved in any trade
+retain their initial balances; and
+\item \emph{quantity consistency}: no execution uses more quantity than the two
+matched orders actually hold.
+\end{itemize}
+
+These properties are intentionally safety-only. The current model does not yet
+prove a stable-book theorem after repeated matching, nor a global
+sum-conservation theorem over all traders, and it does not attempt liveness,
+throughput, or fairness beyond the best-order selection built into the match
+relation.

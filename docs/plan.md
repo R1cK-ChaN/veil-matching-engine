@@ -2,437 +2,349 @@
 
 ## Goal
 
-Build a clean, formally verified core of a simplified electronic matching
+Build and document a formally verified core of a simplified electronic matching
 engine in Veil.
 
-The project goal is to prove that a single-asset, limit-order-only matching
+The project goal is to show that a single-asset, limit-order-only matching
 engine:
 
-- respects price-time priority
-- preserves cash and asset conservation
-- only records trades that come from real live orders
 - maintains a well-formed bid and ask book
+- respects price-time best-order selection
+- only records trades with valid provenance fields
+- preserves balance-related safety properties in the fragment that Veil can
+  express directly
 
 This project is about correctness, not low-latency production engineering.
 
-## Current Scope
+## Current Status
 
-The current baseline is the minimal verified core from
-[`veil_pseudospec.md`](veil_pseudospec.md):
+The repository already contains a working Lean and Veil project:
+
+- `MatchingEngine/Engine.lean`: verified matching-engine model
+- `MatchingEngine.lean`: root import
+- `lean-toolchain`: Lean 4.27.0
+- `lakefile.toml`: Veil and mathlib dependencies
+- `docs/veil_pseudospec.md`: proof-friendly pseudo-spec
+- `report/paper.tex` and `report/sections/`: paper source
+- `report/proposal.tex`: proposal source
+
+Current verified result:
+
+- `lake build` succeeds
+- `#check_invariants` passes for all declared properties
+- `#model_check { trader := Fin 2, orderId := Fin 3 }` reports no violation
+
+Verified counts from the current engine source:
+
+- 3 actions:
+  - `submit_buy`
+  - `submit_sell`
+  - `doMatch`
+- 7 safety properties
+- 13 invariants
+- 21 properties checked per verification block:
+  - 1 `doesNotThrow`
+  - 7 safety properties
+  - 13 invariants
+- 4 verification blocks:
+  - initialization
+  - `doMatch`
+  - `submit_sell`
+  - `submit_buy`
+- total reported checks:
+  - 84 invariant/safety preservation checks
+  - 1 bounded model check
+  - 85 total checks
+
+## Actual Model in the Repo
+
+The current implementation is slightly different from the original
+list-oriented pseudo-spec.
+
+Implemented design:
+
+- relational encoding rather than explicit sorted sequences
+- ghost predicates `betterBid`, `betterAsk`, `isBestBid`, `isBestAsk`
+- no cancellation
+- no partial fills
+- `doMatch` requires equal buy and sell quantities
+- `doMatch` forbids self-trade
+- balances are mutable, with immutable `initCash` and `initAsset` used for
+  frame-style conservation properties
+
+This design is more SMT-friendly than a list-based encoding and is the version
+that currently verifies.
+
+## Scope
+
+Current baseline scope:
 
 - single asset
 - limit orders only
-- buy book sorted by price descending, then time ascending
-- sell book sorted by price ascending, then time ascending
-- transitions:
-  - `submit_buy`
-  - `submit_sell`
-  - `match`
-- no cancellation in v1
-- no partial fills in v1
-- `match` only when the head bid and head ask have equal quantity
+- no cancellation
+- no partial fills
+- best bid and best ask selected by first-order predicates
+- bounded model checking over a tiny finite instance
 
-This scope is intentionally narrow so the core theorems are finishable by the
-course deadline.
-
-## Non-Goals
-
-The following are explicitly out of scope for the first complete version:
+Out of scope for the first complete version:
 
 - market orders
 - multiple assets
 - protocol-level exchange connectivity
-- low-latency optimisation
-- fault-tolerant distributed architecture
+- throughput or tail-latency benchmarking
+- distributed or fault-tolerant architecture
 - production regulatory controls
-- complex priority overlays
-- benchmarking focused on throughput or tail latency
+- venue-specific priority overlays
 
-These can be discussed in background and future work, but they should not drive
-the formal model now.
+## What Is Proved Now
 
-## Main Proof Targets
+### Safety Properties
 
-The first proof targets are:
+The current engine proves these 7 safety properties:
 
-- `submit_buy_preserves_wf`
-- `submit_sell_preserves_wf`
-- `match_preserves_wf`
-- `submit_transitions_preserve_conserved`
-- `match_preserves_conserved`
-- `match_uses_best_bid`
-- `match_uses_best_ask`
-- `match_trade_is_traceable`
+- `bid_positive_qty`
+- `ask_positive_qty`
+- `trade_has_qty`
+- `trade_has_px`
+- `trade_qty_from_bid`
+- `trade_px_from_ask`
+- `trade_no_self_deal`
 
 Interpretation:
 
-- `wf` means both books are sorted, side-correct, and contain only positive
-  quantities
-- `conserved` means total cash and total asset quantity stay equal to their
-  initial totals
-- head-selection theorems are the local proof form of price-time priority
-- traceability means each trade log entry is justified by the pre-state
+- active orders have positive quantities
+- every recorded trade has positive quantity and price
+- trade quantity comes from the bid side
+- trade price comes from the ask side
+- buyer and seller are distinct
+
+### Invariants
+
+The current engine proves these 13 invariants:
+
+- `bid_ask_disjoint`
+- `ts_mono_bid`
+- `ts_mono_ask`
+- `ts_unique_bid`
+- `ts_unique_ask`
+- `no_reuse_bid`
+- `no_reuse_ask`
+- `traded_not_in_ask`
+- `traded_not_in_bid`
+- `bid_positive_px`
+- `ask_positive_px`
+- `cash_conserved_no_trade`
+- `asset_conserved_no_trade`
+
+Interpretation:
+
+- an order ID cannot be live on both sides
+- active orders have timestamps below `next_ts`
+- active timestamps are unique per side
+- matched orders are not reused in the live books
+- active prices stay positive
+- traders uninvolved in all trades keep their initial balances
+
+## Mapping to Original Pseudo-Spec Goals
+
+The current verification result partially realizes the pseudo-spec targets in
+`docs/veil_pseudospec.md`.
+
+Already covered in the current model:
+
+- submission preserves positivity and disjointness properties
+- matching preserves the declared well-formedness-style invariants
+- best-order selection is encoded as a precondition through `isBestBid` and
+  `isBestAsk`
+- trade fields are tied back to the matched orders
+- balance updates satisfy the current frame-style conservation statements
+
+Not yet fully realized in the stronger pseudo-spec sense:
+
+- no explicit list-based `wf` predicate
+- no global sum-based conservation theorem over all traders
+- no explicit theorem naming layer matching the pseudo-spec theorem names
+- no cancellation
+- no partial fills
+
+This is acceptable for the current milestone, but the report should state this
+difference clearly instead of overstating what is proved.
 
 ## Workstreams
 
-### 1. Veil Model
+### 1. Verified Core
 
-Implement the abstract state and transitions:
+Status: complete for the current milestone.
 
-- core types: `Order`, `Trade`, `Balance`, `State`
-- ordering predicates: `better_bid`, `better_ask`
-- state predicates: `bid_book_sorted`, `ask_book_sorted`, `wf`, `conserved`
-- transitions: `submit_buy`, `submit_sell`, `match`
+Implemented:
 
-Deliverable:
+- abstract types for traders and order IDs
+- mutable state for books, balances, trades, and timestamps
+- ghost ordering predicates
+- `submit_buy`, `submit_sell`, and `doMatch`
+- deductive verification and bounded model checking
 
-- a runnable Veil specification for the minimal model
+### 2. Experiment and Validation Notes
 
-### 2. Lean Helper Lemmas
+Status: partially complete.
 
-Use Lean for obligations that are awkward to discharge directly in Veil:
+Already available:
 
-- insertion preserves sortedness for bids
-- insertion preserves sortedness for asks
-- head of sorted bid book has highest priority
-- head of sorted ask book has highest priority
-- updating two balances preserves total cash
-- updating two balances preserves total asset
+- build success
+- invariant-check success
+- bounded model-check success on `Fin 2` traders and `Fin 3` order IDs
 
-Deliverable:
+Still needed:
 
-- a Lean file containing the helper lemmas required by the Veil invariants
+- write the experiment results into the paper
+- record the meaning of the 85 checks in a report-friendly table
+- document the model-check bound explicitly in prose
 
-### 3. Verification Experiments
+### 3. Report Writing
 
-Run bounded checks to find specification mistakes early, then use invariant
-checking for the main results.
+Status: in progress.
 
-Deliverable:
+Already available:
 
-- a short results section summarising what was checked, at what bounds, and
-  what passed or failed
+- `report/paper.tex`
+- split section files under `report/sections/`
 
-### 4. Report Writing
+Still needed:
 
-Build the paper around the actual verified core rather than around speculative
-stretch goals.
+- replace “skeleton” wording with final prose
+- update the experiment section from plan to actual results
+- explain the gap between pseudo-spec conservation and implemented
+  frame-style conservation
+- add a short implementation section describing the relational encoding choice
 
-Deliverable:
+### 4. Stretch Extensions
 
-- a complete paper with system model, formalisation, experiments, and
-  limitations
+Status: not started, and should stay blocked until the report of the current
+verified core is stable.
 
-## Milestone Plan
+Potential extensions:
 
-### Milestone 1: Stable Formal Core
-
-Target output:
-
-- pseudo-spec frozen
-- Veil state and transition signatures written
-- basic well-formedness predicates written
-
-Definition of done:
-
-- the model compiles or parses cleanly enough to start bounded checking
-- no unresolved design decision remains about state shape or transition shape
-
-### Milestone 2: Book Invariants
-
-Target output:
-
-- sortedness and side-correctness encoded
-- submission transitions preserve `wf`
-
-Definition of done:
-
-- `submit_buy_preserves_wf`
-- `submit_sell_preserves_wf`
-
-### Milestone 3: Matching Correctness
-
-Target output:
-
-- `match` transition encoded
-- local best-order selection theorems stated and proved
-- trade traceability stated and proved
-
-Definition of done:
-
-- `match_preserves_wf`
-- `match_uses_best_bid`
-- `match_uses_best_ask`
-- `match_trade_is_traceable`
-
-### Milestone 4: Accounting Invariants
-
-Target output:
-
-- balances fully integrated into the proof
-- conservation invariant proved for all core transitions
-
-Definition of done:
-
-- `submit_transitions_preserve_conserved`
-- `match_preserves_conserved`
-
-### Milestone 5: Experiments and Write-Up
-
-Target output:
-
-- bounded model-checking results documented
-- invariant-checking results documented
-- paper sections aligned with what was actually proved
-
-Definition of done:
-
-- experiment notes are written
-- paper has concrete results, not placeholder claims
+- explicit theorem wrappers with names closer to the pseudo-spec
+- cancellation
+- partial fills
+- stronger accounting theorem if expressible in a richer setting
+- optional Velvet executable matching loop
 
 ## Experiment Plan
 
 This project needs verification experiments, not systems-performance
 benchmarks.
 
-### Experiment 1: Small-Instance Model Checking
+### Experiment 1: Deductive Invariant Checking
 
 Purpose:
 
-- catch specification bugs before investing in full proofs
+- establish that initialization and each action preserve the full declared
+  safety and invariant set
 
-Inputs to vary:
+Current result:
 
-- number of accounts
-- maximum outstanding orders
-- bounded price range
-- bounded quantity range
+- passes for initialization, `doMatch`, `submit_sell`, and `submit_buy`
 
-Checks:
+What to report:
 
-- crossed-book violations
-- FIFO or best-price violations
-- impossible trades
-- quantity inconsistencies
-- missing side conditions on transitions
+- number of safety properties
+- number of invariants
+- number of action-preservation blocks
+- total checks
 
-Outputs to record:
-
-- largest bounds explored
-- whether a counterexample was found
-- what property failed
-- whether the issue was a spec bug or a missing invariant
-
-### Experiment 2: Invariant Checking
+### Experiment 2: Bounded Model Checking
 
 Purpose:
 
-- determine whether the chosen invariants are strong enough to make the core
-  safety results inductive
+- search for concrete counterexamples in a tiny finite instance
 
-Inputs to vary:
+Current bound:
 
-- candidate invariant set
-- helper lemmas enabled or required
+- `trader := Fin 2`
+- `orderId := Fin 3`
+- `initCash := 100`
+- `initAsset := 100`
 
-Checks:
+Current result:
 
-- whether `#check_invariants` succeeds
-- what counterexamples to induction appear
-- which invariants had to be strengthened
+- no violation found
+- explored 1 state
 
-Outputs to record:
+What to report:
 
-- final invariant set
-- failed proof attempts and their cause
-- helper lemmas imported from Lean
+- exact bound
+- theory values supplied to the model checker
+- whether any violation was found
+- how limited the explored state space is
 
-### Experiment 3: Optional Executable Cross-Check
-
-Only do this if the core Veil proof is stable early.
+### Experiment 3: Trace-Based Manual Scenarios
 
 Purpose:
 
-- compare a Velvet-style matching loop against the abstract transition relation
+- provide simple human-readable examples in the paper even if they are not part
+  of the formal proof output
 
-Inputs to vary:
+Recommended scenarios:
 
-- short bounded event traces
-- different book shapes within the supported scope
+1. a single buy followed by a matching sell
+2. two competing bids with one designated best bid
+3. a blocked match due to insufficient cash or asset
+4. a no-self-trade example
 
-Checks:
-
-- whether the executable loop produces the same residual books and trades as
-  the abstract step relation
-
-Outputs to record:
-
-- number of traces checked
-- mismatches, if any
-- supported subset of the full model
+These can be described informally in the report even if not encoded as a
+separate executable test harness.
 
 ## Data Plan
 
 This project does not need real market data.
 
-### Data Sources
-
 Use only synthetic or bounded formal inputs:
 
-- small account universes
-- bounded prices
-- bounded quantities
-- short event traces
-- hand-written corner cases
+- finite trader universes
+- finite order-ID universes
+- bounded price and quantity values
+- hand-written scenario descriptions
 
-### Why Synthetic Data Is Enough
+Why this is sufficient:
 
-The goal is to verify semantic correctness of the model, not fit or replay a
-real market. Real exchange data would add complexity without improving the
-proof argument for the current scope.
+- the goal is to verify the model semantics
+- real market data would not strengthen the current deductive proof result
+- the current model-checking setup is already finite and synthetic by design
 
-### Required Data Sets
+Result artifacts worth preserving:
 
-Prepare at least these input categories:
+- build success notes
+- verification counts
+- exact model-check bounds
+- any future counterexamples if the model changes
+- paper-ready summary tables
 
-- empty-book submission cases
-- same-price FIFO cases
-- best-bid and best-ask crossing cases
-- impossible-match guard cases
-- conservation-sensitive cases with different account balances
+## Immediate Next Steps
 
-### Recommended Trace Shapes
-
-Use small deterministic traces such as:
-
-1. single buy then single matching sell
-2. two buys at same price with different timestamps, then one sell
-3. two buys at different prices, then one sell
-4. unmatched orders that should remain in the book
-5. insufficient balance or asset cases blocked by guards
-
-### Result Artifacts to Save
-
-Save experiment outputs in a reproducible way:
-
-- model-checking bounds used
-- seeds, if randomness is introduced
-- counterexample traces
-- theorem checklist with pass or fail state
-- notes on each invariant added or strengthened
-
-## Report Plan
-
-The paper should follow the current section layout in `paper.tex` and
-`paper_sections/`.
-
-Recommended emphasis by section:
-
-- Introduction:
-  - define the problem and explain the narrow scope
-- Background and Related Work:
-  - explain continuous double auctions, price-time priority, and why Veil fits
-- System Model:
-  - define state, scope, and transitions
-- Formal Specification:
-  - explain the representation choices and execution rule
-- Safety Properties:
-  - define exactly what is proved
-- Verification Strategy:
-  - explain Veil plus Lean division of labour
-- Experiment Skeleton:
-  - replace placeholders with actual bounded-check results
-- Limitations:
-  - state clearly what is omitted and why
-- Conclusion:
-  - summarise the verified core and stretch goals
-
-## Suggested Repository Outputs
-
-Expected key artifacts by the end:
-
-- `docs/veil_pseudospec.md`
-- `docs/plan.md`
-- Veil source files for the model and invariants
-- Lean helper lemma files
-- paper source under `paper.tex` and `paper_sections/`
-- a small note or table of experiment results
-
-Suggested future result locations:
-
-- `results/model-checking.md`
-- `results/invariants.md`
-- `results/counterexamples/`
-
-These paths do not need to be created immediately, but the results should be
-kept separate from the paper draft.
-
-## Risks and Fallbacks
-
-### Main Risk: State-Space Explosion
-
-Problem:
-
-- two ordered books, balances, and a trade log can make bounded checking grow
-  quickly
-
-Fallback:
-
-- reduce account count
-- reduce price and quantity ranges
-- keep no-cancellation and no-partial-fill restrictions
-- prove the local step property first: each `match` chooses the current best
-  bid and ask
-
-### Main Risk: Invariants Not Inductive
-
-Problem:
-
-- the obvious top-level properties may fail unless helper invariants are added
-
-Fallback:
-
-- strengthen `wf`
-- add explicit uniqueness and positivity predicates
-- move arithmetic or ordering facts into Lean lemmas
-
-### Main Risk: Stretch Goals Disrupt the Core
-
-Problem:
-
-- cancellation or partial fills can derail the schedule
-
-Fallback:
-
-- freeze the minimal verified core first
-- treat stretch goals as optional and only attempt them after the core proof is
-  stable
+1. Update the paper sections so the experiment section reports the actual 85
+   checks and the bounded model-check result.
+2. Add a short section explaining why the implementation uses relational
+   `isBestBid` and `isBestAsk` instead of explicit sorted lists.
+3. State clearly in the paper that the current conservation result is a
+   frame-style property, not full global sum conservation.
+4. Decide whether to stop at the current verified core or attempt one stretch
+   feature after the report text is stable.
 
 ## Acceptance Criteria
 
-The project counts as successful if it produces:
+The project counts as successful if it contains:
 
 - a precise Veil model of the minimal matching engine
-- at least one checked safety theorem over the reachable state space
-- a convincing argument for price-time head selection
-- a conservation argument over cash and assets
-- a trade-provenance result
-- a short paper that reports the actual verified scope and actual experiments
+- a successful `lake build`
+- a complete safety and invariant story for the current engine
+- a bounded model-check result documented with explicit bounds
+- a paper that accurately describes what is actually proved
 
-The project does not need to include:
+The project does not need to contain:
 
 - cancellation
 - partial fills
 - real market data
-- production performance evaluation
-
-## Immediate Next Steps
-
-1. Freeze the minimal model in Veil source form based on `veil_pseudospec.md`.
-2. Encode `wf` and `conserved` first.
-3. Prove the two submission preservation theorems before touching stretch
-   features.
-4. Add bounded checks for tiny instances as soon as the state and transitions
-   exist.
-5. Record counterexamples and invariant changes as you go, so the report is
-   written from real evidence instead of reconstruction later.
+- production-style performance evaluation
+- stronger claims than the current verified model supports

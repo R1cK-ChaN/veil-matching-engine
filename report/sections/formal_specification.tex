@@ -1,0 +1,27 @@
+\section{Formal Specification}
+
+\subsection{Book Ordering}
+
+The abstract model uses first-order predicates rather than an explicit sorted
+list representation. The buy side is ranked by descending price, with earlier
+timestamps breaking ties; the sell side is ranked by ascending price, again
+with earlier timestamps breaking ties. These ranking relations induce the
+local notion of price-time priority used throughout the proof.
+
+\subsection{Execution Rule}
+
+Submission takes an explicit trader, order identifier, limit price, and
+quantity, and activates a fresh order on the corresponding side of the book.
+The matching step then considers one best live bid and one best live ask. If
+the two orders are compatible, the system produces a trade record, updates
+account balances, and removes the matched orders. In the current minimal
+model, only full fills are supported, so matching requires equal quantities.
+
+\subsection{Trade Log and Account State}
+
+The trade log is part of the formal state rather than an external trace. This
+makes trade-field provenance properties easy to state and prove: the recorded
+price and quantity can be tied directly to the matched ask and bid. Account
+balances are also explicit in the state, but the current verified result is a
+frame-style conservation property for uninvolved traders rather than a full
+global sum theorem over all accounts.

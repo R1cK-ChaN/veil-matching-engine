@@ -1,0 +1,10 @@
+This paper studies a simplified electronic limit-order matching engine and
+formalises it as a transition system in Veil. The model focuses on a
+single-asset order book with limit orders, explicit order submission
+parameters, trade-log updates, and per-account cash and asset holdings. The
+verified artifact is an abstract legal-match transition system rather than a
+proved concrete matching algorithm over a data structure. The goal is to prove
+core safety properties for that abstract model, including best-order
+selection, trade-field provenance, and balance-related frame properties. The
+paper also reports a small bounded model-checking smoke test and the
+declarative invariant checks used to validate the model.
