@@ -1,0 +1,24 @@
+\section{Introduction}
+
+Electronic exchanges continuously receive buy and sell orders and maintain an
+order book that determines which trades may execute. In the standard
+price-time-priority model, higher bids outrank lower bids, lower asks outrank
+higher asks, and orders at the same price are filled in arrival order. These
+rules are simple to state informally, but implementing and validating them
+precisely is non-trivial once one accounts for ordered books, trade logging,
+and per-account state updates.
+
+This paper studies a deliberately simplified matching engine as a formal
+verification problem. The objective is not to model a production venue with
+full market microstructure, but to isolate the exchange core and prove that it
+preserves the most important safety properties. Concretely, the target is a
+single-asset, limit-order-only engine whose transitions should never violate
+price-time priority, create or destroy cash or assets, or record a trade that
+cannot be explained by two live orders.
+
+The main contribution of the project is a proof-oriented specification of the
+matching engine in Veil, supported by Lean lemmas where arithmetic and
+ordered-data reasoning are awkward to express directly in the relational
+transition-system style. A secondary contribution, if time permits, is an
+algorithmic matching loop in Velvet tied back to the abstract specification by
+a suitable postcondition.

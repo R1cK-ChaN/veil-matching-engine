@@ -1,0 +1,42 @@
+\section{System Model}
+
+\subsection{Scope}
+
+The model covers a single asset and limit orders only. Each order carries an
+identifier, account, side, limit price, quantity, and timestamp. The minimum
+version includes only submission and matching transitions; cancellation and
+partial fills are treated as stretch goals because they substantially increase
+the amount of residual-state reasoning required.
+
+\subsection{State}
+
+The engine state consists of:
+
+\begin{itemize}[leftmargin=1.5em]
+\item a buy-side order book;
+\item a sell-side order book;
+\item a trade log;
+\item per-account cash and asset holdings; and
+\item any auxiliary bookkeeping needed for timestamps or order identity.
+\end{itemize}
+
+For proof convenience, each side of the book can be represented either as a
+sorted sequence or as a relational ranking structure. The current plan
+prioritises a sorted representation because it makes price-time priority
+visible in the state and aligns naturally with helper lemmas about insertion
+and deletion.
+
+\subsection{Transitions}
+
+The abstract transition system contains at least the following steps:
+
+\begin{itemize}[leftmargin=1.5em]
+\item \texttt{submit}: add a new limit order to the appropriate side of the
+book while preserving book well-formedness;
+\item \texttt{match}: execute one trade between the current best bid and best
+ask when they are compatible; and
+\item optionally \texttt{cancel}: remove a live order from the book.
+\end{itemize}
+
+The paper focuses on the first two transitions. If cancellation is included,
+it will be added only after the base safety proof is stable.

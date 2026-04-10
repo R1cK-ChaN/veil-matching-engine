@@ -1,0 +1,32 @@
+\section{Verification Strategy}
+
+\subsection{Veil Proof Structure}
+
+The core proof strategy is to model-check small instances early to expose
+specification mistakes, and then use Veil's invariant-checking support to prove
+the main safety results. The intended proof shape is:
+
+\begin{enumerate}[leftmargin=1.5em]
+\item define the abstract state and transitions;
+\item formulate book well-formedness and accounting invariants;
+\item use bounded checking to find missing side conditions;
+\item strengthen invariants until the main safety properties become inductive.
+\end{enumerate}
+
+\subsection{Lean Helper Lemmas}
+
+Several obligations are more naturally handled in Lean than directly inside
+Veil. These include:
+
+\begin{itemize}[leftmargin=1.5em]
+\item preservation of sortedness under insertion and deletion;
+\item simple facts about quantities and residual quantities;
+\item arithmetic lemmas needed for conservation of cash and assets.
+\end{itemize}
+
+\subsection{Optional Velvet Component}
+
+If the main Veil proof stabilises early enough, a small Velvet implementation
+of the matching loop can serve as an executable reference. The point of this
+extension is not performance, but a proof-aligned executable artifact whose
+postcondition links it back to the Veil transition relation.

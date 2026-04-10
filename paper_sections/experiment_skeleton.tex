@@ -1,0 +1,62 @@
+\section{Experiment Skeleton}
+
+\subsection{Purpose}
+
+The experiments in this project are verification experiments rather than
+systems-performance experiments. Their role is to validate the specification,
+surface counterexamples early, and document the cost and scope of the bounded
+checks used during development.
+
+\subsection{Experiment 1: Small-Instance Model Checking}
+
+This experiment explores tiny bounded instances of the state space with a small
+account set, bounded prices, and bounded quantities. The goal is to catch
+specification bugs before attempting full invariant proofs.
+
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{Inputs:} number of accounts, maximum outstanding orders, bounded
+price range, bounded quantity range.
+\item \textbf{Checks:} stable-book violations, queue-discipline violations,
+impossible trades, and quantity inconsistencies.
+\item \textbf{Outputs to report:} maximum bounds explored, whether a
+counterexample was found, and the kind of bug revealed by any failing case.
+\end{itemize}
+
+\subsection{Experiment 2: Invariant Checking}
+
+This experiment focuses on proving the main safety properties with Veil's
+invariant tooling.
+
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{Goal:} determine whether the chosen invariants are strong enough
+to make the main properties inductive.
+\item \textbf{Measurements:} which invariants are required, whether
+counterexamples to induction appear, and which helper lemmas are needed from
+Lean.
+\item \textbf{Success criterion:} the core safety set passes invariant
+checking for the minimal model.
+\end{itemize}
+
+\subsection{Experiment 3: Optional Executable Cross-Check}
+
+If a Velvet matching loop is implemented, compare its outputs on bounded event
+streams against the abstract Veil postcondition.
+
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{Goal:} show that the executable loop agrees with the abstract
+matching relation on representative small traces.
+\item \textbf{Outputs to report:} supported trace sizes, observed mismatches if
+any, and the final postcondition used to link code back to the model.
+\end{itemize}
+
+\subsection{Reporting Template}
+
+\begin{center}
+\begin{tabular}{@{}>{\raggedright}p{3.6cm} p{4.2cm} p{3.0cm} p{4.0cm}@{}}
+\textbf{Experiment} & \textbf{Purpose} & \textbf{Variables} & \textbf{What to report} \\
+\hline
+Bounded model checking & Find specification bugs early & Accounts, prices, quantities, outstanding orders & Largest bounds tried; counterexamples found or absent \\
+Invariant checking & Prove core safety properties & Candidate invariants, helper lemmas & Which properties proved; missing obligations \\
+Optional executable check & Align code with spec & Trace length, supported transition subset & Agreement or mismatch between loop and spec \\
+\end{tabular}
+\end{center}

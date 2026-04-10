@@ -1,0 +1,29 @@
+\section{Background and Related Work}
+
+Electronic limit order markets are usually organised as continuous double
+auctions: the exchange maintains a bid book and an ask book, and matches orders
+when the best bid is at least the best ask. In the common price-time-priority
+model, higher bids outrank lower bids, lower asks outrank higher asks, and
+orders at the same price are filled in arrival order~\cite{harris}. This basic
+rule is widely used in practice, although real venues often add richer order
+types, recovery protocols, and venue-specific priority overlays.
+
+That gap between a clean matching rule and a production exchange motivates the
+scope of this paper. Real matching engines must also satisfy low-latency,
+fault-tolerance, auditability, and regulatory requirements, but those concerns
+are not the main target here. Instead, this work isolates the exchange core:
+a single-asset limit order book with explicit state transitions for order
+submission and matching. The goal is not to model full market microstructure,
+but to capture the central correctness question in a form suitable for formal
+verification.
+
+Methodologically, the project is closest to work on transition-system
+verification and verified stateful systems. Veil is a natural fit because it
+supports transition-system modelling, model checking on small instances, and
+automated invariant checking for safety properties~\cite{veilpost}. Lean is
+useful as a supporting tool for lemmas about sorted data structures and
+arithmetic, such as preservation of ordered books and conservation of
+quantities. If extended to an executable reference implementation, Velvet
+offers a way to connect an algorithmic matching loop back to the abstract
+specification~\cite{velvetpost}. Loom is also relevant as part of the broader
+Verse-Lab ecosystem around foundational multi-modal verification~\cite{loom}.
