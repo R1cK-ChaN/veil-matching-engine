@@ -1,4 +1,4 @@
-\section{Experiment Skeleton}
+\section{Verification Results}
 
 \subsection{Purpose}
 
@@ -7,57 +7,45 @@ systems-performance experiments. Their role is to validate the specification,
 surface counterexamples early, and document the cost and scope of the bounded
 checks used during development.
 
-\subsection{Experiment 1: Small-Instance Model Checking}
+\subsection{Deductive Invariant Checking}
 
-The current bounded experiment is a smoke test over a tiny finite instance. It
-does not yet sweep bounded price and quantity domains; instead, it fixes a
-small trader universe and a small order-ID universe and checks the resulting
-finite model.
-
-\begin{itemize}[leftmargin=1.5em]
-\item \textbf{Inputs:} \texttt{trader := Fin 2}, \texttt{orderId := Fin 3},
-with constant initial balances supplied to the theory functions.
-\item \textbf{Checks:} whether the finite instance exhibits any violation of
-the declared safety and invariant set.
-\item \textbf{Outputs to report:} the exact finite bound, whether a
-counterexample was found, and the number of explored states.
-\end{itemize}
-
-\subsection{Experiment 2: Invariant Checking}
-
-This experiment focuses on proving the main safety properties with Veil's
-invariant tooling.
+The main result comes from Veil's deductive invariant checking. In the current
+model there are seven declared safety properties and thirteen supporting
+invariants. Together with the generated \texttt{doesNotThrow} obligation, this
+gives twenty-one checks per verification block. Veil checks initialization and
+each of the three actions, namely \texttt{doMatch}, \texttt{submit\_sell}, and
+\texttt{submit\_buy}. The current run therefore covers eighty-four
+initialization-and-action preservation checks, and all of them pass.
 
 \begin{itemize}[leftmargin=1.5em]
-\item \textbf{Goal:} determine whether the chosen invariants are strong enough
-to make the main properties inductive.
-\item \textbf{Measurements:} which invariants are required, whether
-counterexamples to induction appear, and how many preservation checks are
-generated across initialization and actions.
-\item \textbf{Success criterion:} the declared safety and invariant set passes
-deductive checking for the current minimal model.
+\item \textbf{Safety properties:} 7
+\item \textbf{Supporting invariants:} 13
+\item \textbf{Verification blocks:} initialization, \texttt{doMatch},
+\texttt{submit\_sell}, \texttt{submit\_buy}
+\item \textbf{Total deductive checks:} 84
+\item \textbf{Result:} all checks pass
 \end{itemize}
 
-\subsection{Experiment 3: Optional Executable Cross-Check}
+\subsection{Bounded Model Checking}
 
-If a Velvet matching loop is implemented, compare its outputs on bounded event
-streams against the abstract Veil postcondition.
+The bounded experiment is only a smoke test over a tiny finite instance. It
+does not sweep bounded price and quantity domains. Instead, it fixes a small
+trader universe and a small order-ID universe and asks Veil to search for a
+violation of the declared safety and invariant set.
 
 \begin{itemize}[leftmargin=1.5em]
-\item \textbf{Goal:} show that the executable loop agrees with the abstract
-matching relation on representative small traces.
-\item \textbf{Outputs to report:} supported trace sizes, observed mismatches if
-any, and the final postcondition used to link code back to the model.
+\item \textbf{Finite bound:} \texttt{trader := Fin 2},
+\texttt{orderId := Fin 3}
+\item \textbf{Theory values:} constant initial balances for cash and assets
+\item \textbf{Observed result:} no violation found
+\item \textbf{Explored states:} 1
 \end{itemize}
 
-\subsection{Reporting Template}
+\subsection{Interpretation}
 
-\begin{center}
-\begin{tabular}{@{}>{\raggedright}p{3.6cm} p{4.2cm} p{3.0cm} p{4.0cm}@{}}
-\textbf{Experiment} & \textbf{Purpose} & \textbf{Variables} & \textbf{What to report} \\
-\hline
-Bounded model checking & Smoke-test the finite model & Trader bound, order-ID bound, initial theory values & Exact bound, explored states, counterexample found or absent \\
-Invariant checking & Prove the declared safety set & Safety count, invariant count, action blocks & Total checks and whether any block fails \\
-Optional executable check & Align code with spec & Trace length, supported transition subset & Agreement or mismatch between loop and spec \\
-\end{tabular}
-\end{center}
+These results support the current paper claims, but only at the scale of the
+abstract legal-match model implemented here. The deductive checks establish
+that the declared safety and invariant set is preserved by initialization and
+the three actions. The bounded model check is useful as a sanity check, but
+its finite scope is too small to support stronger experimental claims about
+larger bounded price and quantity domains.
