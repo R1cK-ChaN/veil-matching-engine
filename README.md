@@ -1,52 +1,59 @@
-# Veil Matching Engine
+# Formalising a Price-Time-Priority Matching Engine in Veil
 
-This repository contains the CS5232 project work for formalising a simplified
-price-time-priority matching engine in Veil.
+CS5232 project -- a formally verified specification of a simplified electronic
+limit-order matching engine, written in Lean 4 using the
+[Veil](https://github.com/verse-lab/veil) framework for transition-system
+verification.
 
-The repository is organized into three main parts:
+## What this is
 
-- `MatchingEngine.lean`, `MatchingEngine/`, `lakefile.toml`, `lean-toolchain`:
-  the Lean and Veil verification project
-- `docs/`: pseudo-spec, research notes, and working project plan
-- `report/`: proposal source, paper source, and split paper sections
+The specification models a single-asset, limit-order-only matching engine as a
+relational transition system. Three actions define the system: `submit_buy` and
+`submit_sell` place orders on the book, and `doMatch` executes a trade between
+the best bid and best ask when their prices cross.
 
-## Documentation
+Seven safety properties are proved via Veil's SMT-based deductive checking,
+supported by thirteen invariants:
 
-- [`docs/veil_pseudospec.md`](docs/veil_pseudospec.md): pseudo-spec for the
-  matching engine state, transitions, and first proof targets
-- [`docs/plan.md`](docs/plan.md): current project plan and verification status
-- [`docs/deep-research-report.md`](docs/deep-research-report.md): background
-  research notes used to shape the report
+| Property | Statement |
+|---|---|
+| Positive quantities | Active orders carry `qty > 0` |
+| Trade traceability | Recorded trades have positive price and quantity |
+| Trade provenance | Trade price traces to the ask; trade quantity traces to the bid |
+| No self-dealing | Buyer and seller of every trade are distinct |
+| Balance conservation | Traders uninvolved in any trade retain their initial balances |
 
-## Report Sources
+All 84 deductive preservation checks pass (7 safety + 13 invariants + 1
+doesNotThrow, across initialisation and 3 actions). A bounded model check over
+2 traders and 3 order IDs finds no violations.
 
-- [`report/proposal.tex`](report/proposal.tex): project proposal source
-- [`report/build_proposal_pdf.py`](report/build_proposal_pdf.py): proposal PDF
-  builder
-- [`report/paper.tex`](report/paper.tex): main paper entry file
-- [`report/sections`](report/sections): split paper sections
+## Repository layout
 
-## Building the Proposal PDF
+    MatchingEngine/Engine.lean   Veil specification (main file)
+    MatchingEngine.lean          import root
+    lakefile.toml                Lean build configuration
+    lean-toolchain               Lean toolchain version
+    report/paper.tex             project report (LaTeX)
+    report/sections/             report sections
+    docs/                        pseudo-spec, research notes, project plan
 
-Run:
+## Building the specification
+
+Requires Lean 4 and Lake. The Veil dependency is fetched automatically.
 
 ```bash
-python3 report/build_proposal_pdf.py
+lake build
 ```
 
-This generates `report/proposal.pdf` from `report/proposal.tex`.
+This type-checks the specification and runs `#check_invariants` and
+`#model_check`.
 
-## Building the Paper PDF
-
-Run:
+## Building the report
 
 ```bash
 cd report
-pdflatex -interaction=nonstopmode -halt-on-error paper.tex
-pdflatex -interaction=nonstopmode -halt-on-error paper.tex
+pdflatex paper.tex
 ```
-
-This generates `report/paper.pdf`.
 
 ## License
 
