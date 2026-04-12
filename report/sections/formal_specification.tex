@@ -17,16 +17,19 @@ the two orders are compatible, the system produces a trade record, updates
 account balances, and removes the matched orders. In the current minimal
 model, only full fills are supported, so matching requires equal quantities.
 
-\medskip
-\noindent\textbf{Abstract transition sketch.}
+The pseudocode below summarises the two transition families. In the
+specification, \texttt{freshOrder} is a ghost predicate asserting that the
+order identifier is absent from both books and from all trade records.
 
+\medskip
 \begin{quote}
 \begin{verbatim}
 submit(side, trader, oid, px, qty):
-  require oid is fresh and px > 0 and qty > 0
-  record order fields
+  require freshOrder(oid)
+  require px > 0 and qty > 0
   activate oid on the chosen side
-  set timestamp := next_ts
+  record trader, px, qty for oid
+  set timestamp(oid) := next_ts
   next_ts := next_ts + 1
 
 match():
@@ -35,19 +38,22 @@ match():
   require bidPx(b) >= askPx(a)
   require bidQty(b) = askQty(a)
   require bidWho(b) != askWho(a)
-  p := askPx(a); q := bidQty(b)
+  require cash(buyer) >= askPx(a) * bidQty(b)
+  require asset(seller) >= bidQty(b)
+  p := askPx(a);  q := bidQty(b)
   remove b and a from the books
   transfer p*q cash from buyer to seller
   transfer q asset from seller to buyer
-  append trade record (b, a, p, q)
+  record trade(b, a, p, q)
 \end{verbatim}
 \end{quote}
 
 \subsection{Trade Log and Account State}
 
 The trade log is part of the formal state rather than an external trace. This
-makes trade-field provenance properties easy to state and prove: the recorded
-price and quantity can be tied directly to the matched ask and bid. Account
-balances are also explicit in the state, but the current verified result is a
-frame-style conservation property for uninvolved traders rather than a full
-global sum theorem over all accounts.
+makes trade-field provenance properties straightforward to state and prove: the
+recorded price and quantity can be tied directly to the matched ask and bid.
+Account balances are also explicit in the state. The verified conservation
+result is a frame-style property for uninvolved traders rather than a global
+sum theorem, because the latter cannot be expressed in the first-order fragment
+that Veil targets.

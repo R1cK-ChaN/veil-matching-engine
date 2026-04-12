@@ -1,21 +1,23 @@
-\section{Limitations and Threats to Validity}
+\section{Limitations and Future Work}
 
-The paper intentionally abstracts away many features of real exchanges,
-including multiple assets, market orders, protocol-level sequencing, complex
-order types, and operational resilience mechanisms. This is a conscious scope
-decision rather than an omission by accident. The aim is to obtain a clean,
-non-trivial verified core, not to replicate every operational detail of a
-production trading venue.
+The model intentionally abstracts away many features of real exchanges:
+multiple assets, market orders, cancellation, partial fills, protocol-level
+sequencing, and operational resilience. The aim is a clean verified core rather
+than a replica of a production trading venue.
 
-The current artifact is an abstract legal-match transition system rather than a
-verified executable matching algorithm over an explicit data structure. In
-particular, matching correctness is expressed through best-order predicates in
-the transition preconditions, not by verifying a concrete book-processing
-procedure.
+Because the specification uses a relational encoding, matching correctness is
+expressed through best-order predicates in the transition preconditions rather
+than by verifying a concrete book-processing procedure. Extending the work to
+a verified executable matching loop---for instance via Velvet---would
+strengthen the result by connecting the abstract specification to a runnable
+algorithm.
 
-Another important limitation is that the current accounting statement is weaker
-than full global conservation: the proved invariant is a frame-style property
-for traders uninvolved in all trades, not a sum-preservation theorem over all
-accounts. Likewise, the bounded model-checking result is a very small smoke
-test over finite traders and order IDs, not a broad exploration over bounded
-price and quantity domains.
+The accounting result is weaker than full global conservation. The proved
+invariant is a frame-style property for traders uninvolved in all recorded
+trades, not a sum-preservation theorem over all accounts. Expressing the
+latter requires quantifying over a summation that falls outside the
+first-order fragment supported by Veil's SMT backend.
+
+Finally, the bounded model check covers only two traders and three order
+identifiers. A broader sweep over bounded price and quantity domains would
+improve confidence in the specification but was not pursued in this iteration.

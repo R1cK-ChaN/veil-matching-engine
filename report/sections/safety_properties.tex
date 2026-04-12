@@ -1,21 +1,29 @@
 \section{Safety Properties}
 
-The main safety properties to prove are:
+The specification declares seven safety properties, organised into three
+groups.
 
-\begin{itemize}[leftmargin=1.5em]
-\item \emph{best-order selection}: every enabled match step uses an order
-identified as the current best bid and the current best ask;
-\item \emph{trade-field provenance}: recorded trade price and quantity are tied
-to the matched ask and bid;
-\item \emph{no self-dealing}: the matched buyer and seller are distinct;
-\item \emph{frame-style balance preservation}: traders uninvolved in any trade
-retain their initial balances; and
-\item \emph{quantity consistency}: no execution uses more quantity than the two
-matched orders actually hold.
-\end{itemize}
+The first group concerns well-formedness of active orders: every order in the
+bid or ask book must carry a positive quantity. These properties are preserved
+trivially by the submission preconditions, and they propagate through matching
+because \texttt{doMatch} removes the matched orders entirely rather than
+leaving residual quantities.
 
-These properties are intentionally safety-only. The current model does not yet
-prove a stable-book theorem after repeated matching, nor a global
-sum-conservation theorem over all traders, and it does not attempt liveness,
-throughput, or fairness beyond the best-order selection built into the match
-relation.
+The second group concerns trade-field provenance. Every recorded trade must
+have a positive price and a positive quantity. Beyond positivity, the recorded
+quantity must equal the bid quantity of the buy-side order, and the recorded
+price must equal the ask price of the sell-side order. A separate property
+asserts that the buyer and seller of every recorded trade are distinct traders.
+
+The third group is an accounting property. Traders who are not involved in any
+trade---either as buyer or as seller---retain their initial cash and asset
+balances. This is a frame-style conservation statement rather than a global
+sum-preservation theorem over all accounts, because the latter requires
+quantifying over a summation that cannot be expressed in the first-order
+fragment supported by Veil's SMT backend.
+
+All seven properties are stated as \texttt{safety} declarations in the Veil
+source. Thirteen additional \texttt{invariant} declarations serve as
+supporting lemmas that make the safety properties inductive: book disjointness,
+timestamp monotonicity and uniqueness, trade-exclusion from both books,
+positive prices on active orders, and the balance frame conditions.

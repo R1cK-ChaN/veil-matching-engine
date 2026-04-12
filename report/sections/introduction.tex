@@ -8,19 +8,19 @@ rules are simple to state informally, but implementing and validating them
 precisely is non-trivial once one accounts for ordered books, trade logging,
 and per-account state updates.
 
-This paper studies a deliberately simplified matching engine as a formal
+This paper treats a deliberately simplified matching engine as a formal
 verification problem. The objective is not to model a production venue with
 full market microstructure, but to isolate the exchange core and prove that it
-preserves the most important safety properties. Concretely, the target is a
+preserves a set of safety properties. Concretely, the target is a
 single-asset, limit-order-only engine whose transition relation only permits
 legal submission and matching steps, and whose safety properties constrain the
 fields and balance effects of recorded trades.
 
-The main contribution of the project is a proof-oriented specification of the
-matching engine in Veil. The current result is an abstract legal-match model:
-matching is specified through first-order best-bid and best-ask predicates,
-rather than by proving a concrete executable book algorithm correct. This
-still gives a meaningful verified core, but it is narrower than a full proof
-of correctness for a concrete matching implementation. A secondary extension,
-if time permits, is an algorithmic matching loop in Velvet tied back to the
-abstract specification by a suitable postcondition.
+The main contribution is a proof-oriented specification of the matching engine
+in Veil, together with a complete deductive verification of seven safety
+properties and thirteen supporting invariants. Matching is specified through
+first-order best-bid and best-ask predicates rather than by proving a concrete
+executable book algorithm correct. This gives a meaningful verified core that
+captures the essential correctness requirements of price-time-priority
+matching, even though it does not extend to a verified executable
+implementation.

@@ -1,33 +1,34 @@
 \section{Verification Strategy}
 
-\subsection{Veil Proof Structure}
+\subsection{Proof Structure}
 
-The core proof strategy is to model-check small instances early to expose
-specification mistakes, and then use Veil's invariant-checking support to prove
-the main safety results. The intended proof shape is:
+The proof follows an iterative workflow. The abstract state and transitions
+are defined first, then candidate safety properties and invariants are
+formulated. Bounded model checking on a small finite instance exposes missing
+side conditions early, and each counterexample is resolved by adding or
+strengthening an invariant. Once no counterexamples remain at the chosen bound,
+Veil's deductive invariant checker is used to verify that the full set of
+safety properties and invariants is preserved by initialisation and every
+action in the unbounded model.
 
-\begin{enumerate}[leftmargin=1.5em]
-\item define the abstract state and transitions;
-\item formulate book well-formedness and accounting invariants;
-\item use bounded checking to find missing side conditions;
-\item strengthen invariants until the main safety properties become inductive.
-\end{enumerate}
+\subsection{Relational Encoding}
 
-\subsection{Lean Helper Lemmas}
+A key design decision is the relational encoding of the order book. Rather
+than modelling each side as a sorted list, the specification uses membership
+predicates (\texttt{inBid}, \texttt{inAsk}) and per-order field functions
+(\texttt{bidPx}, \texttt{bidQty}, \texttt{bidTs}, etc.). Best-bid and
+best-ask are defined as ghost predicates quantifying over all active orders on
+the same side. This encoding avoids the need for list-manipulation lemmas and
+keeps all proof obligations within the decidable fragment handled by Veil's
+SMT backend. The trade-off is that the specification is not directly
+executable: it characterises legal matches rather than computing them.
 
-Several obligations are more naturally handled in Lean than directly inside
-Veil. In the current relational encoding, relatively little auxiliary Lean
-infrastructure is needed, but the natural future obligations would include:
+\subsection{Invariant Design}
 
-\begin{itemize}[leftmargin=1.5em]
-\item preservation of sortedness under insertion and deletion;
-\item simple facts about quantities and residual quantities;
-\item arithmetic lemmas needed for stronger conservation theorems.
-\end{itemize}
-
-\subsection{Optional Velvet Component}
-
-If the main Veil proof stabilises early enough, a small Velvet implementation
-of the matching loop can serve as an executable reference. The point of this
-extension is not performance, but a proof-aligned executable artifact whose
-postcondition links it back to the Veil transition relation.
+Thirteen invariants support the seven safety properties. The most important
+families are: book disjointness (an order identifier cannot appear in both
+books simultaneously), timestamp monotonicity and pairwise uniqueness (which
+underpin the well-definedness of price-time priority), and trade-exclusion
+(any order identifier that appears in a trade record is absent from both
+books). These invariants were discovered incrementally through bounded model
+checking and manual inspection of failed proof obligations.

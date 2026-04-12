@@ -1,9 +1,10 @@
 \section{Conclusion}
 
-This project treats a simplified price-time-priority matching engine as a
-transition-system verification problem. Even in a narrow single-asset,
-limit-order-only form, the model already combines ordered-data reasoning,
-trade-log provenance, and accounting invariants in a way that makes the proof
-interesting. A successful outcome is a clean Veil specification, a core set of
-checked safety theorems, supporting Lean lemmas, and a small but convincing
-verification experiment suite.
+This project formalises a simplified price-time-priority matching engine as a
+transition system in Veil and verifies seven safety properties covering
+best-order selection, trade-field provenance, no self-dealing, and a
+frame-style balance conservation property. Thirteen supporting invariants make
+the safety properties inductive, and all eighty-four deductive checks pass.
+Even in this narrow single-asset, limit-order-only setting, the model combines
+ordered-data reasoning, trade-log provenance, and accounting invariants in a
+way that exercises Veil's verification infrastructure meaningfully.

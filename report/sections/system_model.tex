@@ -3,40 +3,28 @@
 \subsection{Scope}
 
 The model covers a single asset and limit orders only. Each order carries an
-identifier, account, side, limit price, quantity, and timestamp. The minimum
-version includes only submission and matching transitions; cancellation and
-partial fills are treated as stretch goals because they substantially increase
-the amount of residual-state reasoning required.
+identifier, account, side, limit price, quantity, and timestamp. Only
+submission and matching transitions are modelled; cancellation and partial
+fills are excluded because they substantially increase the amount of
+residual-state reasoning required without changing the core safety argument.
 
 \subsection{State}
 
-The engine state consists of:
-
-\begin{itemize}[leftmargin=1.5em]
-\item a buy-side order book;
-\item a sell-side order book;
-\item a trade log;
-\item per-account cash and asset holdings; and
-\item any auxiliary bookkeeping needed for timestamps or order identity.
-\end{itemize}
-
-For proof convenience, each side of the book can be represented either as a
-sorted sequence or as a relational ranking structure. The current
-implementation uses the relational option: the state records order membership
-and fields directly, and ghost predicates define what it means for an order to
-be the current best bid or best ask.
+The engine state consists of a buy-side order book, a sell-side order book, a
+trade log, per-account cash and asset holdings, and auxiliary bookkeeping for
+timestamps and order identity. For proof convenience the current
+implementation uses a relational encoding rather than sorted sequences: the
+state records order membership and fields directly, and ghost predicates
+define what it means for an order to be the current best bid or best ask.
 
 \subsection{Transitions}
 
-The abstract transition system contains at least the following steps:
-
-\begin{itemize}[leftmargin=1.5em]
-\item \texttt{submit}: add a new limit order to the appropriate side of the
-book while explicitly assigning its price and quantity;
-\item \texttt{match}: execute one legal trade between the current best bid and
-best ask when they are compatible; and
-\item optionally \texttt{cancel}: remove a live order from the book.
-\end{itemize}
-
-The paper focuses on the first two transitions. If cancellation is included,
-it will be added only after the base safety proof is stable.
+The transition system has three actions. \texttt{submit\_buy} and
+\texttt{submit\_sell} add a new limit order to the appropriate side of the
+book, assigning its price, quantity, and a monotonically increasing timestamp.
+Both actions share a common freshness precondition: the order identifier must
+not already appear in either book or in any existing trade record.
+\texttt{doMatch} executes one legal trade between the current best bid and
+best ask when their prices cross and their quantities are equal. It removes
+the matched orders, updates the relevant account balances, and appends a trade
+record.
