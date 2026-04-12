@@ -109,16 +109,19 @@ ghost relation isBestBid (b : orderId) :=
 ghost relation isBestAsk (a : orderId) :=
   inAsk a ∧ ∀ o, (inAsk o ∧ o ≠ a) → betterAsk a o
 
+-- Fresh order: not active in either book and never involved in a trade
+ghost relation freshOrder (oid : orderId) :=
+  ¬ inBid oid ∧ ¬ inAsk oid ∧
+  (∀ x, ¬ tradeExists oid x) ∧
+  (∀ x, ¬ tradeExists x oid)
+
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Actions (transitions)
 -- ═══════════════════════════════════════════════════════════════════════════
 
 -- Submit a buy (bid) order with an explicit limit price and quantity.
 action submit_buy (who_param : trader) (oid : orderId) (px qty : Nat) {
-  require ¬ inBid oid
-  require ¬ inAsk oid
-  require ∀ x, ¬ tradeExists oid x
-  require ∀ x, ¬ tradeExists x oid
+  require freshOrder oid
   require px > 0
   require qty > 0
   inBid oid := true
@@ -131,10 +134,7 @@ action submit_buy (who_param : trader) (oid : orderId) (px qty : Nat) {
 
 -- Submit a sell (ask) order with an explicit limit price and quantity.
 action submit_sell (who_param : trader) (oid : orderId) (px qty : Nat) {
-  require ¬ inBid oid
-  require ¬ inAsk oid
-  require ∀ x, ¬ tradeExists oid x
-  require ∀ x, ¬ tradeExists x oid
+  require freshOrder oid
   require px > 0
   require qty > 0
   inAsk oid := true
@@ -217,13 +217,12 @@ invariant [ts_mono_ask] inAsk O → askTs O < next_ts
 invariant [ts_unique_bid] inBid O1 ∧ inBid O2 ∧ O1 ≠ O2 → bidTs O1 ≠ bidTs O2
 invariant [ts_unique_ask] inAsk O1 ∧ inAsk O2 ∧ O1 ≠ O2 → askTs O1 ≠ askTs O2
 
--- Matched orders are no longer in either book
-invariant [no_reuse_bid] tradeExists B A → ¬ inBid B
-invariant [no_reuse_ask] tradeExists B A → ¬ inAsk A
-
--- Traded order IDs were never resubmitted to either book
-invariant [traded_not_in_ask] tradeExists O A → ¬ inAsk O
-invariant [traded_not_in_bid] tradeExists B O → ¬ inBid O
+-- Traded order IDs are excluded from both books
+-- (covers all four combinations of trade-role × book)
+invariant [trade_bid_not_in_bid] tradeExists B A → ¬ inBid B
+invariant [trade_ask_not_in_ask] tradeExists B A → ¬ inAsk A
+invariant [trade_bid_not_in_ask] tradeExists O A → ¬ inAsk O
+invariant [trade_ask_not_in_bid] tradeExists B O → ¬ inBid O
 
 -- Active orders have positive prices
 invariant [bid_positive_px] inBid O → bidPx O > 0
