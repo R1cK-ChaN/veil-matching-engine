@@ -17,36 +17,41 @@ the two orders are compatible, the system produces a trade record, updates
 account balances, and removes the matched orders. In the current minimal
 model, only full fills are supported, so matching requires equal quantities.
 
-The pseudocode below summarises the two transition families. In the
-specification, \texttt{freshOrder} is a ghost predicate asserting that the
-order identifier is absent from both books and from all trade records.
+In the specification, \texttt{freshOrder} is a ghost predicate asserting that
+the order identifier is absent from both books and from all trade records.
+Best-bid is a ghost relation defined directly in Veil syntax (the listings
+below transcribe the source with \texttt{/\textbackslash}, \texttt{forall},
+and \texttt{!=} standing for the actual \(\wedge\), \(\forall\), and
+\(\neq\) glyphs in the \texttt{.lean} file):
 
 \medskip
 \begin{quote}
 \begin{verbatim}
-submit(side, trader, oid, px, qty):
-  require freshOrder(oid)
-  require px > 0 and qty > 0
-  activate oid on the chosen side
-  record trader, px, qty for oid
-  set timestamp(oid) := next_ts
-  next_ts := next_ts + 1
-
-match():
-  choose b with isBestBid(b)
-  choose a with isBestAsk(a)
-  require bidPx(b) >= askPx(a)
-  require bidQty(b) = askQty(a)
-  require bidWho(b) != askWho(a)
-  require cash(buyer) >= askPx(a) * bidQty(b)
-  require asset(seller) >= bidQty(b)
-  p := askPx(a);  q := bidQty(b)
-  remove b and a from the books
-  transfer p*q cash from buyer to seller
-  transfer q asset from seller to buyer
-  record trade(b, a, p, q)
+ghost relation isBestBid (b : orderId) :=
+  inBid b /\ forall o, (inBid o /\ o != b) -> betterBid b o
 \end{verbatim}
 \end{quote}
+\medskip
+
+A submission action reads as a short list of preconditions followed by field
+assignments and a timestamp bump:
+
+\medskip
+\begin{quote}
+\begin{verbatim}
+action submit_buy (who : trader) (oid : orderId) (px qty : Nat) {
+  require freshOrder oid;  require px > 0;  require qty > 0
+  inBid oid := true;  bidWho oid := who;  bidPx oid := px
+  bidQty oid := qty;  bidTs oid := next_ts;  next_ts := next_ts + 1
+}
+\end{verbatim}
+\end{quote}
+\medskip
+
+The matching action is structurally similar: it requires \texttt{isBestBid b},
+\texttt{isBestAsk a}, price crossing, equal quantities, distinct traders, and
+sufficient buyer cash and seller assets, then performs the asset and cash
+transfer and appends the trade record.
 
 \subsection{Trade Log and Account State}
 

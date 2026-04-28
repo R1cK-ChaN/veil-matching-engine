@@ -24,3 +24,25 @@ executable book algorithm correct. This gives a meaningful verified core that
 captures the essential correctness requirements of price-time-priority
 matching, even though it does not extend to a verified executable
 implementation.
+
+\subsection*{Worked Example}
+
+A concrete trace makes the model easier to read. Suppose traders \(T_1\) and
+\(T_2\) both start with cash \(=\) asset \(= 100\).
+
+\begin{enumerate}[leftmargin=2em,itemsep=2pt,topsep=2pt]
+  \item \texttt{submit\_buy(T1, oid=1, px=10, qty=5)} adds order 1 to the bid
+        book at price 10, quantity 5, timestamp 0.
+  \item \texttt{submit\_sell(T2, oid=2, px=8, qty=5)} adds order 2 to the ask
+        book at price 8, quantity 5, timestamp 1.
+  \item \texttt{doMatch(1, 2)} fires: prices cross (\(10 \ge 8\)), quantities
+        match, traders differ, balances are sufficient. The engine removes both
+        orders, transfers \(8 \times 5 = 40\) cash from \(T_1\) to \(T_2\) and
+        5 asset units from \(T_2\) to \(T_1\), and appends
+        \texttt{tradeExists(1,2)} with \texttt{tradePx=8}, \texttt{tradeQty=5}.
+\end{enumerate}
+
+The verified safety properties pin down exactly this behaviour: the recorded
+quantity equals the bid quantity, the recorded price equals the ask price,
+buyer and seller differ, and any trader not appearing in a trade keeps their
+initial balance.

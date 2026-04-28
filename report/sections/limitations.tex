@@ -18,6 +18,16 @@ trades, not a sum-preservation theorem over all accounts. Expressing the
 latter requires quantifying over a summation that falls outside the
 first-order fragment supported by Veil's SMT backend.
 
-Finally, the bounded model check covers only two traders and three order
-identifiers. A broader sweep over bounded price and quantity domains would
-improve confidence in the specification but was not pursued in this iteration.
+Finally, bounded model checking is currently disabled. Veil's
+\texttt{\#model\_check} command requires a finite \texttt{Enumeration} of each
+action's argument tuple, and both submission actions take \texttt{Nat}-typed
+price and quantity arguments. To let \texttt{\#gen\_spec} continue to derive
+\texttt{Enumeration} for the action-label sum, the specification declares a
+stub \texttt{Enumeration Nat} instance whose completeness proof is
+\texttt{sorry}. The stub is never evaluated: \texttt{\#model\_check} is
+commented out and \texttt{\#check\_invariants} does not depend on it.
+Restricting price and quantity to a bounded type such as \texttt{Fin~N} would
+re-enable the bounded checker but would also narrow the abstract model.
+Replacing the stub with a real \texttt{Enumeration} for a chosen finite price
+and quantity range, while leaving the abstract specification otherwise
+intact, is a natural follow-up.

@@ -17,21 +17,32 @@ of the three actions (\texttt{doMatch}, \texttt{submit\_sell}, and
 \texttt{submit\_buy}), producing eighty-four preservation checks in total. All
 eighty-four pass.
 
-\subsection{Bounded Model Checking}
+\subsection{Bounded Model Checking (Disabled)}
 
-A bounded model check serves as a smoke test over a small finite instance.
-The bound fixes two traders (\texttt{Fin~2}) and three order identifiers
-(\texttt{Fin~3}), with constant initial balances for both cash and assets.
-Veil searches this finite state space for a violation of the declared safety
-and invariant set and finds none. The explored-state count reported by Veil is
-one, confirming that the finite domain is very small; the check is useful for
-catching specification typos but does not substitute for the deductive proof.
+We initially also planned to invoke Veil's \texttt{\#model\_check} as a small
+finite smoke test over two traders and three order identifiers. In practice
+this command requires a \texttt{Veil.Enumeration} instance for each action's
+argument tuple, and both submission actions take \texttt{Nat}-typed price and
+quantity arguments. \texttt{Nat} has no finite enumeration, so the synthesised
+\texttt{instEnumerationLabel} reduces to \texttt{sorry} and the bounded
+checker cannot evaluate. Re-enabling the check would require restricting price
+and quantity to a finite type such as \texttt{Fin~N}, which would narrow the
+abstract model. We chose to keep the unbounded specification, since the
+deductive result already covers it.
 
 \subsection{Interpretation}
 
 The deductive checks establish that the declared safety and invariant set is
-preserved by initialisation and all three actions in the unbounded model. The
-bounded model check complements this as a sanity check but its scope is too
-narrow to support claims about larger bounded price and quantity domains. Taken
-together, the two results validate the specification at the level of the
-abstract relational model presented in this paper.
+preserved by initialisation and all three actions in the unbounded model.
+That, rather than a bounded smoke test, is the primary verification result
+reported in this paper.
+
+\subsection{Verification Time}
+
+Wall-clock numbers on a Linux laptop with no special hardware: a cold
+\texttt{lake build MatchingEngine} that has the dependency caches already
+populated takes roughly nine minutes for the SMT-backed checks to clear; an
+incremental \texttt{lake build} with a warm cache and no source change
+completes in about one second. A first-time clean checkout, which has to
+build mathlib, cvc5, and Veil, takes roughly fifteen to thirty minutes
+depending on cache state.

@@ -5,5 +5,8 @@ Matching is specified relationally through first-order best-bid and best-ask
 predicates rather than by verifying a concrete book-processing algorithm.
 Seven safety properties are proved, covering best-order selection, trade-field
 provenance, no self-dealing, and a frame-style balance conservation property
-for uninvolved traders. All eighty-four deductive invariant checks pass, and a
-bounded model check over a small finite instance finds no violations.
+for uninvolved traders. All eighty-four deductive invariant checks pass in the
+unbounded model. Bounded model checking via Veil's \texttt{\#model\_check} is
+intentionally disabled because the engine's \texttt{Nat}-typed price and
+quantity arguments fall outside the finite enumeration that Veil's bounded
+checker requires.
