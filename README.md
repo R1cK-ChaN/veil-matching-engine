@@ -44,7 +44,7 @@ Bounded model checking (`#model_check`) is intentionally disabled — see
     lean-toolchain               Lean toolchain version
     report/paper.tex             project report (LaTeX)
     report/sections/             report sections
-    docs/                        pseudo-spec, research notes, project plan
+    docs/veil_pseudospec.md      proof-friendly pseudo-spec (companion to Engine.lean)
 
 ## Building and verifying
 
