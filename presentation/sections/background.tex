@@ -1,0 +1,75 @@
+\section{Background: Price-Time Priority}
+
+\begin{frame}{The Single Legal Matching Rule}
+
+A continuous limit order book is governed by \alert{price-time priority}.
+
+\begin{block}{Best Bid / Best Ask}
+$b$ is \emph{best bid} iff no active bid has higher $px$, or equal $px$ with earlier $ts$.\\
+$a$ is \emph{best ask} iff no active ask has lower $px$, or equal $px$ with earlier $ts$.
+\end{block}
+
+\begin{block}{Legal Match}
+\[
+\begin{aligned}
+  & \texttt{isBestBid}(b)\ \wedge\ \texttt{isBestAsk}(a)\ \wedge \\
+  & \texttt{bidPx}(b) \geq \texttt{askPx}(a)\ \wedge\ \texttt{buyer}(b) \neq \texttt{seller}(a).
+\end{aligned}
+\]
+\end{block}
+
+\textbf{Encoding.} \texttt{isBestBid}, \texttt{isBestAsk} are \emph{relational predicates} --- abstract, refinable.
+
+\end{frame}
+
+\begin{frame}{Worked Example: A Small Order Book}
+
+Bids prefer higher prices; asks prefer lower; equal prices break by earlier $ts$. \alert{Best} order on each side is highlighted.
+
+\begin{columns}[T]
+\column{0.48\textwidth}
+\textbf{Active asks (sell side)}
+\vspace{1mm}
+\begin{center}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{lrrl}
+\toprule
+\textbf{Trader} & \textbf{Px} & \textbf{Ts} & \textbf{Rank} \\
+\midrule
+Ivan & $102.5$ & $t_3$ & 4 \\
+Hugo & $100$   & $t_2$ & 3 \\
+Eve  & $100$   & $t_0$ & 2 \\
+\rowcolor{nus-orange!20} Dave & $99$ & $t_1$ & \textbf{best} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\vspace{1mm}
+{\small Lower price wins; ties broken by earlier $ts$.}
+
+\column{0.48\textwidth}
+\textbf{Active bids (buy side)}
+\vspace{1mm}
+\begin{center}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{lrrl}
+\toprule
+\textbf{Trader} & \textbf{Px} & \textbf{Ts} & \textbf{Rank} \\
+\midrule
+\rowcolor{nus-orange!20} Bob   & $102$  & $t_2$ & \textbf{best} \\
+Carol & $101$  & $t_0$ & 2 \\
+Alice & $101$  & $t_1$ & 3 \\
+Frank & $99.5$ & $t_3$ & 4 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\vspace{1mm}
+{\small Higher price wins; ties broken by earlier $ts$.}
+\end{columns}
+
+\vspace{2mm}
+
+\begin{block}{Cross \& execution price}
+$\texttt{bestBid}=102 \geq 99=\texttt{bestAsk}\ \Rightarrow$ match \alert{Bob $\leftrightarrow$ Dave} at $\texttt{askPx}=\alert{99}$.
+\end{block}
+
+\end{frame}

@@ -1,0 +1,37 @@
+\section{Scope of the Formal Model}
+
+\begin{frame}{What We Model, What We Do Not}
+
+\begin{columns}[T]
+\column{0.49\textwidth}
+\begin{block}{In Scope (Verified)}
+\begin{itemize}
+    \item Single-asset universe.
+    \item Limit orders only.
+    \item Active bid / ask sets (relational).
+    \item Equal-quantity full-fill matching.
+    \item Per-trader cash \& asset balances.
+    \item Monotone timestamp clock.
+    \item Trade log with provenance.
+\end{itemize}
+\end{block}
+
+\column{0.49\textwidth}
+\begin{block}{Out of Scope (Omitted)}
+\begin{itemize}
+    \item Order cancellation.
+    \item Market / stop orders.
+    \item Partial fills.
+    \item Multi-asset books.
+    \item Sorted order-book data structure.
+    \item Latency, throughput, fees.
+    \item Global conservation theorem.
+\end{itemize}
+\end{block}
+\end{columns}
+
+\begin{block}{Why this minimal core?}
+Each omitted feature is real but expands the proof surface without changing what \alert{fairness} and \alert{accounting safety} \emph{mean}. Verify first, then refine.
+\end{block}
+
+\end{frame}

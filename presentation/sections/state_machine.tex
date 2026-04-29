@@ -1,0 +1,55 @@
+\section{Formal Model: A Transition System}
+
+\begin{frame}{State \& Transitions}
+
+\begin{columns}[T]
+\column{0.42\textwidth}
+\begin{block}{State $\mathcal{S}$ (Veil)}
+\centering\scriptsize
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{ll}
+\toprule
+\textbf{Field} & \textbf{Type} \\
+\midrule
+\texttt{orders}  & set $\langle id, tr, side, px, qty, ts \rangle$ \\
+\texttt{active}  & $id \to \texttt{Bool}$ \\
+\texttt{cash}    & $tr \to \mathbb{Z}$ \\
+\texttt{asset}   & $tr \to \mathbb{Z}$ \\
+\texttt{trades}  & list $\langle b, a, px, qty, ts \rangle$ \\
+\texttt{clock}   & $\mathbb{N}$ (monotone) \\
+\bottomrule
+\end{tabular}
+\end{block}
+
+\column{0.55\textwidth}
+\begin{center}
+\begin{tikzpicture}[
+    every node/.style={font=\scriptsize},
+    state/.style={rectangle,rounded corners=2pt,draw=nus-blue,thick,fill=nus-blue!8,
+                  minimum width=2.0cm,minimum height=1.0cm,align=center,inner sep=2pt},
+    init/.style={circle,draw=nus-orange,thick,fill=nus-orange!20,minimum size=0.7cm},
+    arr/.style={-{Latex[length=2mm]},nus-blue,thick},
+    arrO/.style={-{Latex[length=2mm]},nus-orange,thick},
+    arrD/.style={-{Latex[length=2mm]},nus-grey,thick,dashed},
+]
+    \node[init] (init) at (0,0) {$s_0$};
+    \node[state] (book) at (2.6,0) {\textbf{Open Book}\\{\tiny bids, asks, balances}};
+    \node[state] (post) at (5.8,0) {\textbf{Post-Match}\\{\tiny trade printed}};
+    \draw[arr] (init) -- node[above,font=\tiny] {\texttt{init}} (book);
+    \draw[arr] (book) -- node[above,font=\tiny] {\texttt{match}} (post);
+    \draw[arrO] (book.north) .. controls +(-1,1) and +(1,1) .. (book.north)
+        node[midway,above,font=\tiny,nus-orange] {\texttt{submit\_buy}/\texttt{sell}};
+    \draw[arrD] (post.south) .. controls +(0,-1.2) and +(0,-1.2) .. (book.south);
+\end{tikzpicture}
+\end{center}
+
+\textbf{Transitions $\mathcal{T}$:} \texttt{submit\_buy} / \texttt{submit\_sell} (add a resting order); \texttt{match} (consume a best-bid / best-ask pair, print a trade).
+\end{columns}
+
+\vspace{2mm}
+
+\begin{block}{Inductive invariant principle}
+Prove $\varphi(s_0)$ and $\forall s, t \in \mathcal{T}.\ \varphi(s) \Rightarrow \varphi(t(s))$ --- no execution can reach a $\neg\varphi$ state.
+\end{block}
+
+\end{frame}

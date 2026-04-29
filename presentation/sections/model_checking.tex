@@ -1,0 +1,51 @@
+\section{Bounded Model Checking}
+
+\begin{frame}{Bounded Model Checking}
+
+Beyond the inductive proofs, the same Veil specification is driven through BMC --- a smoke test on tiny finite domains, not a performance benchmark.
+
+\begin{columns}[T]
+\column{0.42\textwidth}
+\begin{block}{Bounds (design)}
+\centering\small
+\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{lr}
+\toprule
+\textbf{Parameter} & \textbf{Bound} \\
+\midrule
+Number of traders  & $2$ \\
+Distinct order IDs & $3$ \\
+Search depth $k$   & $4$ \\
+\bottomrule
+\end{tabular}
+\end{block}
+
+\textbf{Where it helped.} Catching invariant-formulation issues during development --- e.g.\ conflating ``trade in log'' with ``order is best now''.
+
+\column{0.55\textwidth}
+\begin{tikzpicture}
+\begin{semilogyaxis}[
+    width=6.8cm, height=5.0cm,
+    xlabel={\scriptsize Search depth $k$ (illustrative)},
+    ylabel={\scriptsize Reachable states (log)},
+    xmin=0, xmax=4.5,
+    ymin=0.7, ymax=4000,
+    grid=major,
+    grid style={nus-grey!20},
+    axis line style={nus-grey},
+    tick label style={font=\tiny,nus-grey},
+    label style={font=\scriptsize,nus-blue},
+    legend style={font=\tiny,at={(0.02,0.98)},anchor=north west,draw=nus-grey!40},
+    every axis plot/.append style={thick},
+]
+\addplot[mark=*,nus-blue,mark options={fill=nus-blue}] coordinates {
+    (0,1) (1,14) (2,96) (3,412) (4,1320)
+};
+\addlegendentry{Reachable states}
+\draw[dashed,nus-blue!50] (axis cs:4,0.7) -- (axis cs:4,1320);
+\node[font=\tiny,nus-blue,anchor=south] at (axis cs:4,1320) {cap $k\!=\!4$};
+\end{semilogyaxis}
+\end{tikzpicture}
+\end{columns}
+
+\end{frame}

@@ -1,0 +1,20 @@
+\section{Motivation}
+
+\begin{frame}{Why Verify a Matching Engine?}
+
+\begin{block}{Core question}
+A matching engine decides \alert{who trades, at what price, and in what order}, then mutates real assets. Once a trade prints, it is final.
+\end{block}
+
+\textbf{Three failure classes motivate this work:}
+\begin{enumerate}
+    \item \textbf{Fairness} --- an out-of-priority match advantages one trader over another with a better or earlier quote.
+    \item \textbf{Provenance} --- a \emph{phantom trade}, a fill recorded without a real bid and ask behind it.
+    \item \textbf{Accounting} --- an unrelated trader's balance moves on a trade they did not participate in.
+\end{enumerate}
+
+\begin{block}{Goal of this work}
+Extract the safety-critical core of a matching engine, model it as an abstract transition system in \alert{Veil} (with supporting lemmas in \alert{Lean}), and verify three local safety properties.
+\end{block}
+
+\end{frame}

@@ -1,0 +1,63 @@
+\section{Verified Safety Properties}
+
+\begin{frame}{Two Step-Local Safety Properties on \texttt{match}}
+
+Both are stated over the \emph{pre-state} of the match step --- the state before $b$ and $a$ are deactivated.
+
+\begin{block}{Property I --- Best-Order Selection (Price-Time Priority)}
+If \texttt{match} produces trade $\mathit{tr}$ from bid $b$ and ask $a$, then in the pre-state:
+\[
+  \texttt{isBestBid}(b)\ \wedge\ \texttt{isBestAsk}(a).
+\]
+\emph{The engine cannot print a trade using an out-of-priority order.}
+\end{block}
+
+\begin{block}{Property II --- Provenance (Active-on-Fire)}
+If \texttt{match} produces trade $\mathit{tr}$ from $b$ and $a$, then in the pre-state:
+\[
+  b, a \in \texttt{orders}\ \wedge\ \texttt{active}(b)\ \wedge\ \texttt{active}(a).
+\]
+\emph{Every trade is anchored to real orders that were live when the step fired.}
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Property III --- Balance Frame}
+
+\begin{block}{Statement}
+For every \texttt{match} step producing trade $\mathit{tr}$ with buyer $b^\star$, seller $a^\star$:
+\[
+  \forall\, t \notin \{b^\star, a^\star\}.\quad
+  \texttt{cash}'[t] = \texttt{cash}[t]\ \wedge\ \texttt{asset}'[t] = \texttt{asset}[t]
+\]
+\emph{Side-effects are localized to exactly the two participants.}
+\end{block}
+
+\vspace{2mm}
+
+\begin{center}
+\begin{tikzpicture}[
+    every node/.style={font=\scriptsize},
+    cell/.style={rectangle,draw=nus-grey,minimum width=1.0cm,minimum height=0.6cm,inner sep=2pt},
+    active/.style={rectangle,draw=nus-orange,thick,fill=nus-orange!20,minimum width=1.0cm,minimum height=0.6cm,inner sep=2pt}
+]
+    \node at (-1.5,0) {\textbf{Traders:}};
+    \node[active] at (0,0)   {$b^\star$};
+    \node[cell]   at (1.1,0) {$t_1$};
+    \node[cell]   at (2.2,0) {$t_2$};
+    \node[cell]   at (3.3,0) {$t_3$};
+    \node[cell]   at (4.4,0) {$t_4$};
+    \node[active] at (5.5,0) {$a^\star$};
+    \node[nus-orange] at (0,0.55)   {$\Delta$};
+    \node[nus-orange] at (5.5,0.55) {$\Delta$};
+    \node[nus-grey]   at (2.75,-0.55) {-- balances unchanged --};
+\end{tikzpicture}
+\end{center}
+
+\vspace{2mm}
+
+\begin{block}{Proof obligations (per $\varphi$)}
+\alert{initiation}: $\varphi(s_0)$. \quad \alert{consecution}: $\forall s, t.\ \varphi(s) \Rightarrow \varphi(t(s))$.
+\end{block}
+
+\end{frame}

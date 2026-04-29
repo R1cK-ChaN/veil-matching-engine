@@ -1,0 +1,29 @@
+\section{The Matching Transition}
+
+\begin{frame}[fragile]{Abstract Match Transition (Pseudocode)}
+
+\begin{lstlisting}[style=spec]
+-- the only way a trade is permitted to come into existence
+transition match () =
+  exists b a in orders.
+    requires  isBestBid(b)             -- no better bid is active
+    requires  isBestAsk(a)             -- no better ask is active
+    requires  bidPx(b) >= askPx(a)     -- the book actually crosses
+    requires  bidQty(b) =  askQty(a)   -- equal quantity (full fill)
+    requires  buyer(b) /= seller(a)    -- no self-trading
+    requires  active(b) and active(a)
+  in
+    let px = askPx(a) in               -- trade at the resting ask
+    let q  = bidQty(b) in
+      cash[buyer(b)]   -= px * q
+      asset[buyer(b)]  += q
+      cash[seller(a)]  += px * q
+      asset[seller(a)] -= q
+      active[b] := false
+      active[a] := false
+      trades   :+= <b, a, px, q, clock>
+      clock    += 1
+\end{lstlisting}
+
+\end{frame}
+

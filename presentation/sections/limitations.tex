@@ -1,0 +1,31 @@
+\section{Limitations and Future Work}
+
+\begin{frame}{Limitations \& Next Steps}
+
+\begin{columns}[T]
+\column{0.49\textwidth}
+\begin{block}{L1 --- Full-fill only}
+Equal-quantity matching avoids reactivating remainders. Real books split orders.
+\end{block}
+
+\begin{block}{L2 --- No cancellation}
+Orders only leave by being matched. Cancel needs its own transition and frame conditions.
+\end{block}
+
+\column{0.49\textwidth}
+\begin{block}{L3 --- Frame, not global}
+Unrelated traders unaffected, but $\sum \texttt{cash}$ and $\sum \texttt{asset}$ conservation not yet discharged.
+\end{block}
+
+\begin{block}{L4 --- Relational, not refined}
+\texttt{isBestBid}, \texttt{isBestAsk} are predicates, not data structures.
+\end{block}
+\end{columns}
+
+\vspace{2mm}
+
+\begin{block}{The most consequential next step}
+\textbf{Refinement.} Show that a sorted-book implementation $I$ \emph{refines} the abstract spec $A$ --- closing the gap between ``the rule is right'' and ``the engine implements the rule.''
+\end{block}
+
+\end{frame}

@@ -1,0 +1,96 @@
+\documentclass[xcolor=dvipsnames,aspectratio=169]{beamer}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage[utf8]{inputenc}
+\usepackage{xcolor}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{amsmath,amssymb}
+\usepackage{listings}
+\usepackage{array}
+
+\usetikzlibrary{arrows.meta,positioning,shapes,calc,fit,backgrounds,decorations.pathreplacing}
+\pgfplotsset{compat=1.18}
+
+\usetheme{Malmoe}
+
+% NUS color scheme (preserved from template)
+\definecolor{nus-orange}{RGB}{239,124,0}
+\definecolor{nus-white}{RGB}{255,255,255}
+\definecolor{nus-blue}{RGB}{0,61,124}
+\definecolor{nus-black}{RGB}{0,0,0}
+\definecolor{nus-grey}{RGB}{120,120,120}
+\definecolor{bid-green}{RGB}{34,139,87}
+\definecolor{ask-red}{RGB}{179,55,55}
+
+\setbeamercolor{section in head/foot}{bg=nus-blue, fg=nus-white}
+\setbeamercolor{subsection in head/foot}{bg=nus-blue, fg=nus-white}
+\setbeamercolor{frametitle}{bg=nus-blue, fg=nus-white}
+\setbeamercolor{title}{bg=nus-blue, fg=nus-white}
+\setbeamercolor{alerted text}{fg=nus-orange}
+\setbeamercolor{block title}{bg=nus-blue, fg=nus-white}
+\setbeamercolor{block body}{bg=nus-blue!5, fg=nus-black}
+
+\setbeamertemplate{footline}[frame number]{}
+\setbeamertemplate{headline}{}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{theorems}[sections]
+\setbeamertemplate{propositions}[numbered]
+\setbeamertemplate{section in toc}[sections numbered]
+\setbeamertemplate{subsection in toc}[subsections numbered]
+\setbeamertemplate{bibliography item}{\insertbiblabel}
+
+\setbeamertemplate{title page}[default][colsep=-4bp,rounded=true,shadow=true]
+
+% Listings configuration for pseudocode
+\lstdefinestyle{spec}{
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\color{nus-blue}\bfseries,
+  keywordstyle=[2]\color{nus-orange}\bfseries,
+  commentstyle=\color{nus-grey}\itshape,
+  stringstyle=\color{bid-green},
+  morekeywords={transition,requires,let,in,true,false},
+  morekeywords=[2]{isBestBid,isBestAsk,active,bidPx,askPx,bidQty,askQty,buyer,seller,cash,asset,trades,clock},
+  morecomment=[l]{--},
+  showstringspaces=false,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{nus-blue!40},
+  backgroundcolor=\color{nus-blue!3},
+  xleftmargin=4pt,
+  xrightmargin=4pt,
+  numbersep=6pt,
+  numberstyle=\tiny\color{nus-grey},
+  numbers=left,
+}
+
+\title{Verifying a Simplified Stock-Exchange Matching Engine}
+\subtitle{A Transition-System Model in Veil with Lemmas in Lean}
+
+\author{Presenter: Chen Zhikun \\ Student ID: A0310130J}
+\date{April 2026}
+
+\titlegraphic{
+  \includegraphics[width=2cm]{nus-logo}
+}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\input{sections/motivation}
+\input{sections/background}
+\input{sections/scope}
+\input{sections/state_machine}
+\input{sections/matching_rule}
+\input{sections/properties}
+\input{sections/model_checking}
+\input{sections/limitations}
+\input{sections/conclusion}
+
+\end{document}
